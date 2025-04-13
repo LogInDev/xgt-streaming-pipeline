@@ -7,13 +7,13 @@ RUN apt-get update && apt-get install -y \
 
 ENV PATH="/opt/venv/bin:$PATH"
 
+# Kafka Connector JAR 및 JAR 적용 설정파일 복사
+COPY lib/*.jar /opt/flink/lib/
+COPY conf/flink-conf.yaml /opt/flink/conf/
+
 # ✅ PyFlink는 공식 빌드된 안정 버전 설치
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
-
-# Kafka Connector JAR 및 JAR 적용 설정파일 복사
-COPY lib/*.jar /opt/flink-jars/
-COPY conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml
 
 WORKDIR /opt/job
 COPY sensor_stream.py .
