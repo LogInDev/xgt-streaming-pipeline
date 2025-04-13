@@ -540,3 +540,13 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.toptal.com/developers/gitignore/api/macos,intellij,visualstudiocode,python,java,react,node,windows
+
+# 추가
+# 예외: pyflink-job/lib/ 는 포함
+!pyflink-job/lib/
+!pyflink-job/lib/**
+
+# Kafka/Zookeeper runtime files 무시
+kafka/data/
+zookeeper/data/
+zookeeper/log/

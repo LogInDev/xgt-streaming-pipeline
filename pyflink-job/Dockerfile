@@ -1,18 +1,21 @@
-FROM apache/flink:1.19.2-java11
+FROM apache/flink:1.19.0-scala_2.12-java11
 
-# Python 설치 + pip 업그레이드
-RUN apt-get update && apt-get install -y python3 python3-pip && \
-    pip3 install --upgrade pip setuptools wheel && \
-    ln -s /usr/bin/python3 /usr/bin/python
+RUN apt-get update && apt-get install -y \
+    python3.11 python3.11-venv python3.11-dev curl && \
+    curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11 && \
+    python3.11 -m venv /opt/venv
 
+ENV PATH="/opt/venv/bin:$PATH"
+
+# ✅ PyFlink는 공식 빌드된 안정 버전 설치
 COPY requirements.txt .
-RUN pip3 install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Kafka Connector JAR 및 JAR 적용 설정파일 복사
+COPY lib/*.jar /opt/flink-jars/
+COPY conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml
 
-# Kafka 커넥터 JAR 복사
-COPY lib/*.jar /opt/flink/lib/
+WORKDIR /opt/job
+COPY sensor_stream.py .
 
-WORKDIR /opt/pyflink
-COPY pyflink_job.py .
-
-# pyflink는 pip 설치 필요 없음 (flink run -py로 실행)
+CMD ["python", "sensor_stream.py"]

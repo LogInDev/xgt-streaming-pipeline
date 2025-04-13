@@ -43,6 +43,18 @@ services:
     networks:
       - pipeline-net
 
+  kafka-init:
+    image: confluentinc/cp-kafka:7.3.0
+    container_name: kafka-init
+    depends_on:
+      - kafka
+    volumes:
+      - ./scripts/create-topics.sh:/create-topics.sh
+    command: ["bash", "/create-topics.sh"]
+    restart: "no"
+    networks:
+      - pipeline-net
+
   xgt-producer:
     build:
       context: ./xgt-kafka-producer   # 루트 기준 상대경로
@@ -55,46 +67,51 @@ services:
       - pipeline-net
   
   flink-jobmanager:
-    image: flink:1.19
+    image: apache/flink:1.19.0-scala_2.12-java11
     container_name: flink-jobmanager
     ports:
       - "8081:8081"
     command: jobmanager
     environment:
-      FLINK_PROPERTIES: |
+      - |
+        FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
-        rest.address: flink-jobmanager
-        rest.bind-address: 0.0.0.0
-        taskmanager.numberOfTaskSlots: 1
-    restart: always
     networks:
       - pipeline-net
+    depends_on:
+      - kafka
 
   flink-taskmanager:
-    image: flink:1.19
+    image: apache/flink:1.19.0-scala_2.12-java11
     container_name: flink-taskmanager
     depends_on:
       - flink-jobmanager
     command: taskmanager
     environment:
-      FLINK_PROPERTIES: |
+      - |
+        FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
-    restart: always
+        taskmanager.numberOfTaskSlots: 2
     networks:
       - pipeline-net
 
   pyflink-job:
     build:
       context: ./pyflink-job
-    command: >
-      bash -c "sleep 15 && /opt/flink/bin/flink run -t remote -m flink-jobmanager:8081 -py /opt/pyflink/pyflink_job.py"
+    container_name: pyflink-job
     depends_on:
       - kafka
       - flink-jobmanager
-      - flink-taskmanager
     networks:
       - pipeline-net
-      
+    command: >
+      bash -c "
+        echo '⏳ Waiting for Flink JobManager...';
+        until curl -s http://flink-jobmanager:8081/overview; do sleep 2; done;
+        echo '🚀 Submitting PyFlink job';
+        python /opt/job/sensor_stream.py
+      "
+
 networks:
   pipeline-net:
     external: true
