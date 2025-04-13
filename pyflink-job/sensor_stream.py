@@ -43,7 +43,7 @@ def process(value: str) -> str:
     try:
         data = json.loads(value)
         # 간단한 예: value 필드를 2배로 증가
-        data['value'] = float(data['value']) * 2
+        data['data_value'] = float(data['data_value']) * 2
         return json.dumps(data)
     except Exception as e:
         return json.dumps({"error": str(e)})

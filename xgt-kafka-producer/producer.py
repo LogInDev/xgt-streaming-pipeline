@@ -35,43 +35,24 @@ cursor = conn.cursor()
 last_sent_dtm = None
 
 def get_next_batch():
-    global last_sent_dtm
-
-    # 가장 최신 시간 가져오기
-    cursor.execute("""
-        SELECT meas_dtm
-        FROM "MEASURE".meas_data
-        ORDER BY meas_dtm DESC
-        LIMIT 1
-    """)
-    result = cursor.fetchone()
-    if not result:
-        return []
-
-    latest_dtm = result[0]
-    if latest_dtm == last_sent_dtm:
-        print(f"[{datetime.now()}] No new data. Skipping.")
-        return []
-
-    last_sent_dtm = latest_dtm
-
     # 해당 시간 기준 데이터 조회
     cursor.execute("""
-        SELECT meas_dtm, tag_id, datavalue
+        SELECT meas_dtm, tag_id, datatyp, tag_group, datavalue
         FROM "MEASURE".meas_data
-        WHERE meas_dtm = %s AND datavalue > 0
-        ORDER BY tag_id
-        LIMIT 300
-    """, (latest_dtm,))
+        WHERE meas_dtm >= now() - '30 min'::interval AND datavalue > 0
+        ORDER BY meas_dtm DESC
+    """)
     return cursor.fetchall()
 
 def send_to_kafka(batch):
     for row in batch:
-        meas_dtm, tag_id, value = row
+        meas_dtm, tag_id, datatyp, tag_group, value = row
         data = {
-            'timestamp': meas_dtm.isoformat(),
-            'sensor_name': tag_id,
-            'value': float(value)
+            'meas_dtm': meas_dtm.isoformat(),
+            'tag_id': tag_id,
+            'data_type': datatyp,
+            'tag_group':tag_group,
+            'data_value': float(value)
         }
         producer.send(TOPIC_NAME, data)
         print(f"[{datetime.now()}] Sent: {data}")
