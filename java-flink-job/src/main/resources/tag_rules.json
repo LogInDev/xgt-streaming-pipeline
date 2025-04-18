@@ -1,0 +1,27 @@
+{
+  "_templates": {
+    "DO": [0.1, 20.0],
+    "MLSS": [1092.0, 5500.0],
+    "ANX_NH4N": [0.1, 22.2],
+    "ANX_NO3N": [0.1, 4.0],
+    "SBR_NH4N": [0.1, 40.0],
+    "SBR_NO3N": [0.1, 20.0],
+    "TOC": [14.4, 300.0],
+    "SS": [18.5, 400.0],
+    "TN": [3.4, 100.0],
+    "TP": [0.6, 20.0],
+    "FLOW": [1.0, 100.0],
+    "FREQ": [10.0, 100.0],
+    "DIT": [0.1, 20.0]
+  },
+
+  "IN_DOIT301A": { "template": "DO", "zero_clean": false },
+  "NH3_310A_PV": { "template": "ANX_NH4N", "zero_clean": true },
+  "NO3_310A_PV": { "template": "ANX_NO3N", "zero_clean": true },
+  "MLSSIT_312A_PV": { "template": "MLSS", "zero_clean": false },
+  "TOC_EDGEN1_PV": { "template": "TOC", "zero_clean": false },
+  "SS_EDGEN1_PV": { "template": "SS", "zero_clean": false },
+  "FIT_201A_PV": { "template": "FLOW", "zero_clean": false },
+  "INFLOW_PUMP_M2_INVERTER_HZ": { "template": "FREQ", "zero_clean": false },
+  "DIT_301A_PV": { "template": "DIT", "zero_clean": false }
+}
